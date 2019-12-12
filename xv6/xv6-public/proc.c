@@ -339,16 +339,19 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
+      p->time_slot += 1;
+      if(p->time_slot == QUANTUM){
+          p->time_slot = 0;
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
 
-      p->state = RUNNING;
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+          // Process is done running for now.
+          // It should have changed its p->state before coming back.
+          c->proc = 0;
+      }
     }
     release(&ptable.lock);
 
@@ -385,16 +388,10 @@ sched(void)
 void
 yield(void)
 {
-  myproc()->time_slot += 1;
-  if(myproc()->time_slot == QUANTUM)
-  {
-  cprintf("Context Switch Occured!!! %d And Time Slot Is %d \n",myproc()->pid, myproc()->time_slot);
   acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->time_slot = 0;
   myproc()->state = RUNNABLE;
   sched();
   release(&ptable.lock);
-  }
 }
 
 // A fork child's very first scheduling by scheduler()
