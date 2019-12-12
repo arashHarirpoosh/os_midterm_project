@@ -345,7 +345,7 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      p->time_slot += 1;
+      p->time_slot += 1; // Increment Time slot
       if(p->time_slot == QUANTUM)
       {
       p->time_slot = 0;
