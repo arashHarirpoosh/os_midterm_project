@@ -103,7 +103,9 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_getppid(void);
 extern int sys_getChildren(void);
+extern int sys_getCount(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    		sys_fork,
@@ -127,7 +129,9 @@ static int (*syscalls[])(void) = {
 [SYS_link]    		sys_link,
 [SYS_mkdir]   		sys_mkdir,
 [SYS_close]  		sys_close,
+[SYS_getppid]		sys_getppid,
 [SYS_getChildren] 	sys_getChildren,
+[SYS_getCount]		sys_getCount,
 };
 
 void
@@ -137,6 +141,7 @@ syscall(void)
   struct proc *curproc = myproc();
 
   num = curproc->tf->eax;
+  curproc->counter[num] = curproc->counter[num] + 1;//increment system call counter
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     curproc->tf->eax = syscalls[num]();
   } else {

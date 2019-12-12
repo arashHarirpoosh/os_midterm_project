@@ -31,9 +31,12 @@ else if(pid > 0)
         	   }
         else if(pid2 > 0)
         	{
-        	  
-                    int children = getChildren(getpid());
-                    printf(1,"All Childrens Of %d Are %d .\n", getpid(), children);
+        	    getpid();
+        	    getppid();
+        	    getppid();
+		    printf(1,"The System Call Fork() Invoked %d . \n", getCount(1));
+		    printf(1,"The System Call getpid() Invoked %d . \n", getCount(11));
+		    printf(1,"The System Call getppid() Invoked %d . \n", getCount(22));
                     exit();
 		}
 	}

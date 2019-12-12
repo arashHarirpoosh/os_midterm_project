@@ -88,7 +88,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
-
+  p->time_slot = 0;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -341,8 +341,8 @@ scheduler(void)
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
-      p->state = RUNNING;
 
+      p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -385,10 +385,16 @@ sched(void)
 void
 yield(void)
 {
+  myproc()->time_slot += 1;
+  if(myproc()->time_slot == QUANTUM)
+  {
+  cprintf("Context Switch Occured!!! %d And Time Slot Is %d \n",myproc()->pid, myproc()->time_slot);
   acquire(&ptable.lock);  //DOC: yieldlock
+  myproc()->time_slot = 0;
   myproc()->state = RUNNABLE;
   sched();
   release(&ptable.lock);
+  }
 }
 
 // A fork child's very first scheduling by scheduler()
@@ -531,4 +537,47 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+// Count Number Of Digits
+int countDigit(int n)
+{ 
+    if (n == 0) 
+    	{
+        return 0;
+        } 
+    return 1 + countDigit(n / 10); 
+} 
+
+// return children number
+int
+sys_getChildren(void)
+{
+
+struct proc *p;
+int pid;
+int res = 0;
+int cons = 1;
+argint(0, &pid);
+ // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    
+      	if(p->parent->pid == pid)
+      	{
+      		res = res + p->pid*cons;
+      		for(int i=0; i<countDigit(p->pid); i++ )
+      		{
+      			cons = 10 * cons;
+      		}
+      		cprintf("pid is : %d ppid is : %d \n", p->pid, p->parent->pid);
+      	}
+
+
+    }
+    release(&ptable.lock);
+
+return res;
+
 }
