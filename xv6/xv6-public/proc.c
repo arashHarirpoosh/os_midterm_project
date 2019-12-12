@@ -346,7 +346,6 @@ scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       p->time_slot += 1;
-<<<<<<< HEAD
       if(p->time_slot == QUANTUM)
       {
       p->time_slot = 0;
@@ -360,7 +359,6 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-=======
       if(p->time_slot == QUANTUM){
           p->time_slot = 0;
           c->proc = p;
@@ -372,7 +370,6 @@ scheduler(void)
           // Process is done running for now.
           // It should have changed its p->state before coming back.
           c->proc = 0;
->>>>>>> a2b502f6bd47df320a8e30aa35d2d82e07413853
       }
     }
     release(&ptable.lock);
@@ -410,10 +407,6 @@ sched(void)
 void
 yield(void)
 {
-<<<<<<< HEAD
-
-=======
->>>>>>> a2b502f6bd47df320a8e30aa35d2d82e07413853
   acquire(&ptable.lock);  //DOC: yieldlock
   myproc()->state = RUNNABLE;
   sched();
