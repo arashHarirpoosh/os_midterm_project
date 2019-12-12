@@ -89,6 +89,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->time_slot = 0;
+  p->priority = p->pid % 4 + 1;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -325,6 +326,7 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+/* 3.1
 void
 scheduler(void)
 {
@@ -365,7 +367,66 @@ scheduler(void)
 
   }
 }
+*/
+struct proc* highestPriority(void){
+   int min = myproc()->calculatedPriority;
+   struct proc *minp = myproc();
+   struct proc *p;
+   
+  // acquire(&ptable.lock);
+   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+      if(p->calculatedPriority < min){
+        min = p->calculatedPriority;
+        minp = p;
+        }
+}        
+//release(&ptable.lock);
+return minp;
+}
 
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      //release(&ptable.lock);
+      cprintf("hi\n");
+      p = highestPriority();
+      //acquire(&ptable.lock);
+      p->time_slot += 1; // Increment Time slot
+      if(p->time_slot == QUANTUM)
+      {
+      p->time_slot = 0;
+      p->calculatedPriority += (p->priority + p->pid);
+      c->proc = p;
+      switchuvm(p);
+
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+      }
+    release(&ptable.lock);
+
+  }
+}
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
@@ -559,7 +620,6 @@ int countDigit(int n)
 int
 sys_getChildren(void)
 {
-
 struct proc *p;
 int pid;
 int res = 0;
