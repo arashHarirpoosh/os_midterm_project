@@ -221,6 +221,12 @@ fork(void)
   return pid;
 }
 
+void reinitCounter(void){
+	for(int i=0; i< 25;i++){
+	     myproc()->counter[i] = 0;
+	}
+}
+
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
@@ -230,7 +236,7 @@ exit(void)
   struct proc *curproc = myproc();
   struct proc *p;
   int fd;
-
+  reinitCounter();
   if(curproc == initproc)
     panic("init exiting");
 
@@ -339,6 +345,10 @@ scheduler(void)
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
+      p->time_slot += 1;
+      if(p->time_slot == QUANTUM)
+      {
+      p->time_slot = 0;
       c->proc = p;
       switchuvm(p);
 
@@ -349,6 +359,7 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
+      }
     }
     release(&ptable.lock);
 
@@ -385,16 +396,11 @@ sched(void)
 void
 yield(void)
 {
-  myproc()->time_slot += 1;
-  if(myproc()->time_slot == QUANTUM)
-  {
-  cprintf("Context Switch Occured!!! %d And Time Slot Is %d \n",myproc()->pid, myproc()->time_slot);
+
   acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->time_slot = 0;
   myproc()->state = RUNNABLE;
   sched();
   release(&ptable.lock);
-  }
 }
 
 // A fork child's very first scheduling by scheduler()

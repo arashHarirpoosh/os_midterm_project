@@ -34,9 +34,9 @@ else if(pid > 0)
         	    getpid();
         	    getppid();
         	    getppid();
-		    printf(1,"The System Call Fork() Invoked %d . \n", getCount(1));
-		    printf(1,"The System Call getpid() Invoked %d . \n", getCount(11));
-		    printf(1,"The System Call getppid() Invoked %d . \n", getCount(22));
+		    printf(1,"The System Call Fork() Invoked %d Times. \n", getCount(1));
+		    printf(1,"The System Call getpid() Invoked %d Times. \n", getCount(11));
+		    printf(1,"The System Call getppid() Invoked %d Times. \n", getCount(22));
                     exit();
 		}
 	}
