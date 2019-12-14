@@ -19,6 +19,7 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+static struct proc *highestPriority(void);
 
 void
 pinit(void)
@@ -64,7 +65,18 @@ myproc(void) {
   popcli();
   return p;
 }
-
+int
+highestPriorityNumber(void)
+{
+  struct proc *p;
+  int min = MAX;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state == RUNNABLE && p->calculatedPriority < min){
+        min = p->calculatedPriority;
+        }
+} 
+ return min;
+}
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -73,11 +85,17 @@ myproc(void) {
 static struct proc*
 allocproc(void)
 {
-  struct proc *p;
+  int min = highestPriorityNumber();
   char *sp;
-
+  struct proc *p;
   acquire(&ptable.lock);
-
+       
+  //p = highestPriority();
+  //min = p-> calculatedPriority;
+  if (min == MAX){
+  	min = 0;
+  }
+  //min = 1;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
@@ -89,7 +107,8 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->time_slot = 0;
-  p->priority = p->pid % 4 + 1;
+  p->priority = 5;
+  p->calculatedPriority = min;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -318,6 +337,24 @@ wait(void)
   }
 }
 
+
+struct proc* 
+highestPriority(void){  
+   int min = MAX;
+   struct proc *minp = myproc();
+   struct proc *p;
+
+   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state == RUNNABLE && p->calculatedPriority < min){
+        min = p->calculatedPriority;
+        minp = p;
+        }
+}        
+
+return minp;
+}
+
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -326,7 +363,7 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-/* 3.1
+/* 3.1 
 void
 scheduler(void)
 {
@@ -367,24 +404,9 @@ scheduler(void)
 
   }
 }
+
 */
-struct proc* highestPriority(void){
-   int min = myproc()->calculatedPriority;
-   struct proc *minp = myproc();
-   struct proc *p;
-   
-  // acquire(&ptable.lock);
-   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-      if(p->calculatedPriority < min){
-        min = p->calculatedPriority;
-        minp = p;
-        }
-}        
-//release(&ptable.lock);
-return minp;
-}
+
 
 void
 scheduler(void)
@@ -399,19 +421,12 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-
+      p = highestPriority();
+      if (p != myproc()){
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      //release(&ptable.lock);
-      cprintf("hi\n");
-      p = highestPriority();
-      //acquire(&ptable.lock);
-      p->time_slot += 1; // Increment Time slot
-      if(p->time_slot == QUANTUM)
-      {
-      p->time_slot = 0;
-      p->calculatedPriority += (p->priority + p->pid);
+      p->calculatedPriority += p->priority;
       c->proc = p;
       switchuvm(p);
 
@@ -427,6 +442,7 @@ scheduler(void)
 
   }
 }
+
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
