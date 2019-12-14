@@ -183,11 +183,8 @@ UPROGS=\
 	_zombie\
 	_getChildrenTest\
 	_getCountTest\
-<<<<<<< HEAD
 	_changePriorityTest\
-=======
 	_changePolicyTest\
->>>>>>> 3a2489f1768323410a3ea6779580f970bb29051d
 	
 
 fs.img: mkfs README $(UPROGS)
