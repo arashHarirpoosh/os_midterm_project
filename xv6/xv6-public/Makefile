@@ -183,6 +183,7 @@ UPROGS=\
 	_zombie\
 	_getChildrenTest\
 	_getCountTest\
+	_changePolicyTest\
 	
 
 fs.img: mkfs README $(UPROGS)
@@ -256,6 +257,7 @@ EXTRA=\
 	printf.c umalloc.c\
 	getChildrenTest.c\
 	getCountTest.c\
+	changePolicyTest.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
