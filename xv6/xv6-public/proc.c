@@ -243,7 +243,7 @@ fork(void)
 }
 
 void reinitCounter(void){
-	for(int i=0; i< 25;i++){
+	for(int i=0; i< 30;i++){
 	     myproc()->counter[i] = 0;
 	}
 }

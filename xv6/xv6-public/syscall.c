@@ -106,7 +106,11 @@ extern int sys_uptime(void);
 extern int sys_getppid(void);
 extern int sys_getChildren(void);
 extern int sys_getCount(void);
+<<<<<<< HEAD
 extern int sys_changePolicy(void);
+=======
+extern int sys_changePriority(void);
+>>>>>>> a7124b11789e9b0ef936d1816ad2c0eae5e9dec4
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    		sys_fork,
@@ -133,7 +137,11 @@ static int (*syscalls[])(void) = {
 [SYS_getppid]		sys_getppid,
 [SYS_getChildren] 	sys_getChildren,
 [SYS_getCount]		sys_getCount,
+<<<<<<< HEAD
 [SYS_changePolicy]      sys_changePolicy,
+=======
+[SYS_changePriority]    sys_changePriority,
+>>>>>>> a7124b11789e9b0ef936d1816ad2c0eae5e9dec4
 };
 
 void

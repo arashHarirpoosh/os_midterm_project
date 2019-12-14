@@ -32,4 +32,9 @@ SYSCALL(uptime)
 SYSCALL(getppid)
 SYSCALL(getChildren)
 SYSCALL(getCount)
+<<<<<<< HEAD
 SYSCALL(changePolicy);
+=======
+SYSCALL(changePriority)
+
+>>>>>>> a7124b11789e9b0ef936d1816ad2c0eae5e9dec4

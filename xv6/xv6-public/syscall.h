@@ -23,4 +23,8 @@
 #define SYS_getppid  22
 #define SYS_getChildren 23
 #define SYS_getCount 24
+<<<<<<< HEAD
 #define SYS_changePolicy 26
+=======
+#define SYS_changePriority 25
+>>>>>>> a7124b11789e9b0ef936d1816ad2c0eae5e9dec4
