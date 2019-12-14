@@ -15,6 +15,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
+int schedNum = 0;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -364,6 +365,7 @@ return minp;
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 /* 3.1 
+
 void
 scheduler(void)
 {
@@ -407,7 +409,7 @@ scheduler(void)
 
 */
 
-
+/* 3.2 
 void
 scheduler(void)
 {
@@ -442,6 +444,97 @@ scheduler(void)
 
   }
 }
+*/
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  
+  for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    if (schedNum == 0){
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    }
+    else if (schedNum == 1){
+
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      p->time_slot += 1; // Increment Time slot
+      if(p->time_slot == QUANTUM)
+      {
+      p->time_slot = 0;
+      c->proc = p;
+      switchuvm(p);
+
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    
+    }
+    }
+    
+    }
+    else if(schedNum == 2){
+    
+
+      p = highestPriority();
+      if (p != myproc()){
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      p->calculatedPriority += p->priority;
+      c->proc = p;
+      switchuvm(p);
+
+      p->state = RUNNING;
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+      }
+
+    
+    }
+    
+    release(&ptable.lock);
+
+  }
+}
+
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
@@ -662,4 +755,18 @@ argint(0, &pid);
 
 return res;
 
+}
+
+int
+sys_changePolicy(void)
+{
+int n;
+argint(0, &n);
+if (n >= 0 && n < 3){
+	schedNum = n;
+	return 1;
+	}
+else {
+	return -1;
+	}
 }
