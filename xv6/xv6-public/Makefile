@@ -183,7 +183,11 @@ UPROGS=\
 	_zombie\
 	_getChildrenTest\
 	_getCountTest\
+<<<<<<< HEAD
 	_changePriorityTest\
+=======
+	_changePolicyTest\
+>>>>>>> 3a2489f1768323410a3ea6779580f970bb29051d
 	
 
 fs.img: mkfs README $(UPROGS)
@@ -258,6 +262,7 @@ EXTRA=\
 	getChildrenTest.c\
 	getCountTest.c\
 	changePriorityTest.c\
+	changePolicyTest.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
