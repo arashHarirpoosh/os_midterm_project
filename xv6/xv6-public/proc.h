@@ -53,6 +53,11 @@ struct proc {
   int time_slot;
   int priority;
   int calculatedPriority;
+  int creationTime;	       // When the process was created
+  int terminationTime;         // When the process was terminated
+  int sleepingTime;            // Amount of time the process is sleeping
+  int readyTime;               // When the process is ready
+  int runningTime;             // Amount of time the process is running(CBT)
 };
 
 // Process memory is laid out contiguously, low addresses first:
