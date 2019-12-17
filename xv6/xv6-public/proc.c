@@ -15,7 +15,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
-int schedNum = 0;
+int schedNum = 1;
 int time = 0;
 extern void forkret(void);
 extern void trapret(void);
@@ -495,10 +495,10 @@ scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.      
       time+=1;
-      p->time_slot += 1; // Increment Time slot
-      if(p->time_slot == QUANTUM)
+      c->time_slot += 1; // Increment Time slot
+      if(c->time_slot == QUANTUM)
       {
-      p->time_slot = 0;
+      c->time_slot = 0;
       c->proc = p;
       switchuvm(p);
 	
