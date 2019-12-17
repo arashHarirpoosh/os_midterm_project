@@ -16,6 +16,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 int schedNum = 0;
+int time = 0;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -110,6 +111,8 @@ found:
   p->time_slot = 0;
   p->priority = 5;
   p->calculatedPriority = min;
+  p->runningTime = 0;
+  p->creationTime = time;
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -266,6 +269,7 @@ exit(void)
     if(curproc->ofile[fd]){
       fileclose(curproc->ofile[fd]);
       curproc->ofile[fd] = 0;
+      curproc->terminationTime = time;
     }
   }
 
@@ -283,8 +287,9 @@ exit(void)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->parent == curproc){
       p->parent = initproc;
-      if(p->state == ZOMBIE)
+      if(p->state == ZOMBIE){
         wakeup1(initproc);
+        }
     }
   }
 
@@ -346,6 +351,7 @@ highestPriority(void){
    struct proc *p;
 
    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      time+=1;
       if(p->state == RUNNABLE && p->calculatedPriority < min){
         min = p->calculatedPriority;
         minp = p;
@@ -468,11 +474,12 @@ scheduler(void)
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
-
+	
+      p->runningTime += 1;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
+      time+=1;
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
@@ -486,14 +493,16 @@ scheduler(void)
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
-      // before jumping back to us.
+      // before jumping back to us.      
+      time+=1;
       p->time_slot += 1; // Increment Time slot
       if(p->time_slot == QUANTUM)
       {
       p->time_slot = 0;
       c->proc = p;
       switchuvm(p);
-
+	
+      p->runningTime += QUANTUM;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -508,7 +517,6 @@ scheduler(void)
     }
     else if(schedNum == 2){
     
-
       p = highestPriority();
       if (p != myproc()){
       // Switch to chosen process.  It is the process's job
@@ -517,11 +525,12 @@ scheduler(void)
       p->calculatedPriority += p->priority;
       c->proc = p;
       switchuvm(p);
-
+	
+      p->runningTime += 1;	
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
+      
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
