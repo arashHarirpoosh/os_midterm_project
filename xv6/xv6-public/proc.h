@@ -59,6 +59,7 @@ struct proc {
   int sleepingTime;            // Amount of time the process is sleeping
   int readyTime;               // When the process is ready
   int runningTime;             // Amount of time the process is running(CBT)
+  int getTheFirstCpu;         // Check the first time that the process get the cpu
 };
 
 // Process memory is laid out contiguously, low addresses first:
