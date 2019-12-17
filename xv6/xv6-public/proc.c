@@ -12,6 +12,7 @@ struct {
   struct proc proc[NPROC];
 } ptable;
 
+
 static struct proc *initproc;
 
 int nextpid = 1;
@@ -111,14 +112,14 @@ found:
   p->time_slot = 0;
   p->priority = 5;
   p->calculatedPriority = min;
+  pushcli();
+  p->creationTime = mycpu()->time_slot;
+  popcli();
   p->runningTime = 0;
   p->getTheFirstCpu = 0;
   p->sleepingTime = 0;
   p->readyTime = 0;
   p->terminationTime = 0;
-  //pushcli();
-  p->creationTime = mycpu()->time_slot;
-  //popcli();
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -278,10 +279,6 @@ exit(void)
     if(curproc->ofile[fd]){
       fileclose(curproc->ofile[fd]);
       curproc->ofile[fd] = 0;
-      /*pushcli();
-      curproc->terminationTime = mycpu()->time_slot;
-      popcli();*/
-
     }
   }
 
@@ -496,12 +493,13 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     if (schedNum == 0){
+    
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-      /*else if(p->state == EMBRYO){
+      else if(p->state == EMBRYO){
         p->creationTime+=1;
-        }*/
+        }
       else if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
          //p->readyTime = c->time_slot - p->creationTime;
          p->readyTime += 1;
@@ -543,7 +541,7 @@ scheduler(void)
          }
       else if(p->state == SLEEPING){
        	p->sleepingTime+=1;
-       	cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
+       //	cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
        }
 
       // Switch to chosen process.  It is the process's job
@@ -837,3 +835,57 @@ else {
 	return -1;
 	}
 }
+
+int
+sys_waitForChild(void){
+  struct timeVariables *time;
+  argptr(0, (void*)&time, sizeof(*time));
+  struct proc *p;
+  int havekids, pid;
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for exited children.
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->parent != curproc)
+        continue;
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        time->creationTime = p->creationTime;
+        time->terminationTime = p->terminationTime;
+        time->sleepingTime = p->sleepingTime;
+        time->readyTime = p->readyTime;
+        time->runningTime = p->runningTime;
+        release(&ptable.lock);
+        return pid;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || curproc->killed){
+      time->creationTime = 0;
+      time->terminationTime = 0;
+      time->sleepingTime = 0;
+      time->readyTime = 0;
+      time->runningTime = 0;
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+

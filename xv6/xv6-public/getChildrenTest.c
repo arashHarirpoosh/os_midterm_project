@@ -1,7 +1,7 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
- 
+   
 int
 main(void)
 {
@@ -31,7 +31,6 @@ else if(pid > 0)
         	   }
         else if(pid2 > 0)
         	{
-        	  
                     int children = getChildren(getpid());
                     printf(1,"All Childrens Of %d Are %d .\n", getpid(), children);
                     exit();
@@ -42,3 +41,4 @@ else if(pid > 0)
         	
 return 0;
 }
+
