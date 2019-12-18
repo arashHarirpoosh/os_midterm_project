@@ -118,3 +118,13 @@ if(new_priority < 1 || new_priority > 5)
 myproc()->priority = new_priority;
 return 1;
 }
+
+int
+sys_calculateTime(void)
+{
+
+calculateTime();
+return 1;
+}
+
+

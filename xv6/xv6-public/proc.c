@@ -17,7 +17,7 @@ static struct proc *initproc;
 
 int nextpid = 1;
 int schedNum = 0;
-//int time = 0;
+int time = 0;
 extern void forkret(void);
 extern void trapret(void);
 
@@ -112,9 +112,10 @@ found:
   p->time_slot = 0;
   p->priority = 5;
   p->calculatedPriority = min;
-  pushcli();
+  /*pushcli();
   p->creationTime = mycpu()->time_slot;
-  popcli();
+  popcli();*/
+  p->creationTime = ticks;
   p->runningTime = 0;
   p->getTheFirstCpu = 0;
   p->sleepingTime = 0;
@@ -266,9 +267,9 @@ exit(void)
 {
   struct proc *curproc = myproc();
   struct proc *p;
-  pushcli();
+ /* pushcli();
   struct cpu *c = mycpu();
-  popcli();
+  popcli();*/
   int fd;
   reinitCounter();
   if(curproc == initproc)
@@ -306,8 +307,9 @@ exit(void)
 
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;  
-  curproc->terminationTime = c->time_slot;
-  cprintf("pid %d create %d term %d ready %d sleep %d cbt %d \n", curproc->pid, curproc->creationTime, curproc->terminationTime, curproc->readyTime, curproc->sleepingTime, curproc->runningTime);
+  //curproc->terminationTime = c->time_slot;
+  curproc->terminationTime = ticks;
+  //cprintf("pid %d create %d term %d ready %d sleep %d cbt %d \n", curproc->pid, curproc->creationTime, curproc->terminationTime, curproc->readyTime, curproc->sleepingTime, curproc->runningTime);
   sched();
   panic("zombie exit");
 }
@@ -362,14 +364,14 @@ highestPriority(void){
    int min = MAX;
    struct proc *minp = myproc();
    struct proc *p;
-   pushcli();
+   /*pushcli();
    struct cpu *c = mycpu();
-   popcli();
+   popcli();*/
 
    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-      else if(p->state == EMBRYO){
+     /* else if(p->state == EMBRYO){
       	 p->creationTime +=1;
       }
       else if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
@@ -379,7 +381,7 @@ highestPriority(void){
        	p->sleepingTime+=1;
        	//cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
        }
-       c->time_slot += 1;
+       c->time_slot += 1;*/
       if(p->state == RUNNABLE && p->calculatedPriority < min){
         min = p->calculatedPriority;
         minp = p;
@@ -480,6 +482,30 @@ scheduler(void)
 }
 */
 void
+calculateTime(void){
+struct proc *p;
+acquire(&ptable.lock);
+for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+	if(p->state == RUNNING){
+		p->runningTime+=1;
+	}
+	else if(p->state == SLEEPING){
+		p->sleepingTime+=1;
+	}
+	else if(p->state == RUNNABLE && p->getTheFirstCpu){
+		p->readyTime +=1;
+		}
+	else if(p->state == EMBRYO){
+		p->creationTime += 1;
+
+	}
+	}
+release(&ptable.lock);
+
+}
+
+
+void
 scheduler(void)
 {
   struct proc *p;
@@ -493,33 +519,52 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     if (schedNum == 0){
-    
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-      else if(p->state == EMBRYO){
+
+      /*if(p->state != RUNNABLE){		
+	      if(p->state == EMBRYO){
+		p->creationTime+=1;
+		      time+=1;
+		}
+     
+	      else if(p->state == SLEEPING){
+	       	p->sleepingTime+=1;
+	       	p->runningTime += 1;
+	       	      time+=1;
+	       	//cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
+	       }
+	       continue;
+       }*/      //c->time_slot+=1;
+      /*if(p->state == EMBRYO){
         p->creationTime+=1;
         }
-      else if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
-         //p->readyTime = c->time_slot - p->creationTime;
-         p->readyTime += 1;
-         }      
       else if(p->state == SLEEPING){
        	p->sleepingTime+=1;
-       	//cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
-       }
+       	p->runningTime +=1;
+       //	cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
+       }*/
+       if(p->state != RUNNABLE)
+        continue;	      
+       /*if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
+		 //p->readyTime = c->time_slot - p->creationTime;
+		 p->readyTime += 1;
+		 p->runningTime =+1;
+		 //p->runningTime += 1;
+		 } */
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
 	
-      p->runningTime += 1;
+      //p->runningTime += 1;
       p->getTheFirstCpu = 1;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-      c->time_slot+=1;
+
+     // time+=1;
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
@@ -533,7 +578,7 @@ scheduler(void)
 
       if(p->state != RUNNABLE)
         continue;
-      else if(p->state == EMBRYO){
+      /*else if(p->state == EMBRYO){
         p->creationTime+=1;
         }
       else if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
@@ -542,22 +587,38 @@ scheduler(void)
       else if(p->state == SLEEPING){
        	p->sleepingTime+=1;
        //	cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
+       }*/
+             /*if(p->state != RUNNABLE){		
+	      if(p->state == EMBRYO){
+		p->creationTime+=1;
+		}
+    
+	      else if(p->state == SLEEPING){
+	       	p->sleepingTime+=1;
+	       	p->runningTime += 1;
+	       	//cprintf("%d ready %d sleeping %d \n", p->pid, p->readyTime, p->sleepingTime);
+	       }
+	       continue;
        }
-
+	      if(p->state == RUNNABLE && p->getTheFirstCpu == 0){
+		 //p->readyTime = c->time_slot - p->creationTime;
+		 p->readyTime += 1;
+		 p->runningTime += 1;
+		 } */ 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.      
       //time+=1;
-      c->time_slot += 1; // Increment Time slot
+      //c->time_slot += 1; // Increment Time slot
       //cprintf("%d \n", p->pid);
 
-      if(c->time_slot % QUANTUM == 0)
+      if(ticks % QUANTUM == 0)
       {
       //c->time_slot = 0;
       c->proc = p;
       switchuvm(p);
 	
-      p->runningTime += QUANTUM;
+     // p->runningTime += QUANTUM;
       p->getTheFirstCpu = 1;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
@@ -583,7 +644,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
 	
-      p->runningTime += 1;	
+      //p->runningTime += 1;	
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -632,6 +693,7 @@ sched(void)
 void
 yield(void)
 {
+
   acquire(&ptable.lock);  //DOC: yieldlock
   myproc()->state = RUNNABLE;
   sched();
@@ -852,6 +914,11 @@ sys_waitForChild(void){
       if(p->parent != curproc)
         continue;
       havekids = 1;
+      time->creationTime = p->creationTime;
+      time->terminationTime = p->terminationTime;
+      time->sleepingTime = p->sleepingTime;
+      time->readyTime = p->readyTime;
+      time->runningTime = p->runningTime;
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
@@ -863,11 +930,7 @@ sys_waitForChild(void){
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        time->creationTime = p->creationTime;
-        time->terminationTime = p->terminationTime;
-        time->sleepingTime = p->sleepingTime;
-        time->readyTime = p->readyTime;
-        time->runningTime = p->runningTime;
+        
         release(&ptable.lock);
         return pid;
       }
