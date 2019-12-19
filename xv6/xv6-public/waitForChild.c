@@ -11,11 +11,11 @@ struct timeVariables{
   };
 int allCbt = 0;
 int main(void) {
-   changePolicy(1);
+   changePolicy(1);//modified xv6 algorithm
 
    for(int f=0; f<10;f++){
     int pid = fork();
-    if (pid == 0){
+    if (pid == 0){//if 0, then we are in the child process
         for (int i = 0; i < 1000; ++i)
 		printf(1, "%d : %d \n", getpid(), i);
 		//sleep(0.1);
