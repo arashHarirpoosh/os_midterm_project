@@ -16,7 +16,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
-int schedNum = 0;
+int schedNum = 0;//our default scheduling algorithm is the original xv6 scheduling algorithm.
 int time = 0;
 extern void forkret(void);
 extern void trapret(void);
@@ -68,6 +68,7 @@ myproc(void) {
   popcli();
   return p;
 }
+/*returns the number of the highest priority based on the proceses' calculated priorities in the pttable*/
 int
 highestPriorityNumber(void)
 {
@@ -110,14 +111,14 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->time_slot = 0;
-  p->priority = 5;
-  p->calculatedPriority = min;
+  p->priority = 5;//default for new processes
+  p->calculatedPriority = min;//default for new processes
   /*pushcli();
   p->creationTime = mycpu()->time_slot;
   popcli();*/
-  p->creationTime = ticks;
+  p->creationTime = ticks;//marking creation time by the current value of ticks.
   p->runningTime = 0;
-  p->getTheFirstCpu = 0;
+  p->getTheFirstCpu = 0;//hasn't acquired the CPU yet.
   p->sleepingTime = 0;
   p->readyTime = 0;
   p->terminationTime = 0;
@@ -252,7 +253,7 @@ fork(void)
 
   return pid;
 }
-
+/*resetting the counter*/
 void reinitCounter(void){
 	for(int i=0; i< 30;i++){
 	     myproc()->counter[i] = 0;
@@ -271,7 +272,7 @@ exit(void)
   struct cpu *c = mycpu();
   popcli();*/
   int fd;
-  reinitCounter();
+  reinitCounter();//when the process leaves, it must reset it's counter
   if(curproc == initproc)
     panic("init exiting");
 
@@ -470,6 +471,7 @@ scheduler(void)
   }
 }
 */
+/*updating time variables based on the process state*/
 void
 calculateTime(void){
 struct proc *p;
@@ -507,7 +509,7 @@ scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    if (schedNum == 0){
+    if (schedNum == 0){//original xv6 algorithm
 
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
@@ -561,7 +563,7 @@ scheduler(void)
 
     }
     }
-    else if (schedNum == 1){
+    else if (schedNum == 1){//modified xv6 algorithm
     
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){      
 
@@ -625,7 +627,7 @@ scheduler(void)
     }
     
     }
-    else if(schedNum == 2){
+    else if(schedNum == 2){//priority based algorithm
       p = highestPriority();
       if (p != myproc()){
       // Switch to chosen process.  It is the process's job
@@ -852,7 +854,7 @@ int countDigit(int n)
     return 1 + countDigit(n / 10); 
 } 
 
-// return children number
+// return children pid
 int
 sys_getChildren(void)
 {
@@ -884,6 +886,7 @@ return res;
 
 }
 
+/*changes the scheduling algorithm*/
 int
 sys_changePolicy(void)
 {
