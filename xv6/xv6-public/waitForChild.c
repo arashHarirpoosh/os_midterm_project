@@ -9,8 +9,10 @@ struct timeVariables{
   int readyTime; 
   int runningTime;
   };
-
+int allCbt = 0;
 int main(void) {
+   changePolicy(1);
+
    for(int f=0; f<10;f++){
     int pid = fork();
     if (pid == 0){
@@ -22,6 +24,7 @@ int main(void) {
         struct timeVariables *tv = malloc(sizeof(struct timeVariables));
         //sleep(7);
         waitForChild(tv);
+        allCbt += tv->runningTime;
         printf(1, "creationTime %d\n", tv->creationTime);
         printf(1, "terminationTime %d\n", tv->terminationTime);
         printf(1, "readyTime %d\n", tv->readyTime);
@@ -30,7 +33,8 @@ int main(void) {
         
     }
     }
+    //int average = allCbt / 10;
+    printf(1, "all cbt %d average is : %d \n ", allCbt, (allCbt / 10));
     exit();
 }
-
 

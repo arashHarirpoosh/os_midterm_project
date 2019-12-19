@@ -16,7 +16,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
-int schedNum = 0;
+int schedNum = 2;
 int time = 0;
 extern void forkret(void);
 extern void trapret(void);
@@ -914,11 +914,7 @@ sys_waitForChild(void){
       if(p->parent != curproc)
         continue;
       havekids = 1;
-      time->creationTime = p->creationTime;
-      time->terminationTime = p->terminationTime;
-      time->sleepingTime = p->sleepingTime;
-      time->readyTime = p->readyTime;
-      time->runningTime = p->runningTime;
+
       if(p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
@@ -930,7 +926,11 @@ sys_waitForChild(void){
         p->name[0] = 0;
         p->killed = 0;
         p->state = UNUSED;
-        
+        time->creationTime = p->creationTime;
+      	time->terminationTime = p->terminationTime;
+      	time->sleepingTime = p->sleepingTime;
+      	time->readyTime = p->readyTime;
+      	time->runningTime = p->runningTime;
         release(&ptable.lock);
         return pid;
       }

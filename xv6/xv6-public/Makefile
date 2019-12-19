@@ -186,6 +186,8 @@ UPROGS=\
 	_changePriorityTest\
 	_changePolicyTest\
 	_waitForChild\
+	_OriginalSchedTest\
+	_PrioritySchedTest\
 	
 
 fs.img: mkfs README $(UPROGS)
@@ -262,6 +264,8 @@ EXTRA=\
 	changePriorityTest.c\
 	changePolicyTest.c\
 	waitForChild.c\
+	OriginalSchedTest.c\
+	PrioritySchedTest.c\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
