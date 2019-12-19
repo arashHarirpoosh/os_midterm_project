@@ -35,7 +35,7 @@ int main(void) {
    atv.averageWaitingTime = 0;
    
    // Change The Scheduling Algorithm To The QUANTUM 
-   changePolicy(0); 
+   changePolicy(1); 
    
    // Create childrens to print their pid 1000 times
    for(int f=0; f<10;f++){
