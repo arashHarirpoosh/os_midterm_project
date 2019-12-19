@@ -29,7 +29,7 @@ int main(void) {
    struct processTimeVariables ptv[10] ;
    struct averageTimeVariables atv;
    
-   // Reinitialize the averageTimeVariables valuse
+   // Reinitialize the averageTimeVariables values
    atv.averageTurnAroundTime = 0;
    atv.averageCBT = 0;
    atv.averageWaitingTime = 0;
@@ -37,10 +37,10 @@ int main(void) {
    // Change The Scheduling Algorithm To The QUANTUM 
    changePolicy(1); 
    
-   // Create childrens to print their pid 1000 times
+   // Create children to print their pid 1000 times
    for(int f=0; f<10;f++){
     int pid = fork();
-    if (pid == 0){
+    if (pid == 0){//if 0, that means that we are in the child process
         for (int i = 0; i < 1000; ++i){
 		printf(1, "%d : %d \n", getpid(), i);
 		
@@ -52,7 +52,7 @@ int main(void) {
     
     struct timeVariables *tv = malloc(sizeof(struct timeVariables));
     for(int f=0;f<10;f++){        	
-        // Set the ptv variables after one childrens work finished
+        // Set the ptv variables after one of the children's work is finished
 	ptv[f].pid = waitForChild(tv); 
         ptv[f].turnAroundTime = tv->terminationTime - tv->creationTime;
         ptv[f].CBT = tv->runningTime;
@@ -72,12 +72,12 @@ int main(void) {
         printf(1, "runningTime %d\n \n", tv->runningTime);*/
         }
         
-    // Print the required times of the childrens
+    // Print the required time variables of the children
     for(int i=0; i<10;i++){
     	printf(1,"Pid %d Turnaround time %d, CBT %d, and Waiting time %d .\n",ptv[i].pid, ptv[i].turnAroundTime, ptv[i].CBT, ptv[i].waitingTime);
     }
 
-    // Print the average time variables of all of the childrens 
+    // Print the average time variables of all of the children 
     printf(1, "Average Turnaround time %d, Average CBT %d, and Average Waiting time %d .\n", (atv.averageTurnAroundTime / 10), (atv.averageCBT / 10), (atv.averageWaitingTime / 10));
     exit();
 }
