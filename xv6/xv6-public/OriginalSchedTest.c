@@ -9,27 +9,35 @@ struct timeVariables{
   int readyTime; 
   int runningTime;
   };
+  
+// Childrens TT and WT Time   
 struct processTimeVariables{
   int pid;
   int turnAroundTime;
   int CBT;
   int waitingTime;
+  };
 
-};
+// Childrens ATT and AWT Time
 struct averageTimeVariables{
   int averageTurnAroundTime;
   int averageCBT;
   int averageWaitingTime;
-};
+  };
 
 int main(void) {
    struct processTimeVariables ptv[10] ;
    struct averageTimeVariables atv;
+   
+   // Reinitialize the averageTimeVariables valuse
    atv.averageTurnAroundTime = 0;
    atv.averageCBT = 0;
    atv.averageWaitingTime = 0;
-   changePolicy(1); // Change The Scheduling Algorithm To The QUANTUM 
-
+   
+   // Change The Scheduling Algorithm To The QUANTUM 
+   changePolicy(1); 
+   
+   // Create childrens to print their pid 1000 times
    for(int f=0; f<10;f++){
     int pid = fork();
     if (pid == 0){
@@ -43,10 +51,13 @@ int main(void) {
     
     struct timeVariables *tv = malloc(sizeof(struct timeVariables));
     for(int f=0;f<10;f++){        	
+        // Set the ptv variables after one childrens work finished
 	ptv[f].pid = waitForChild(tv); 
         ptv[f].turnAroundTime = tv->terminationTime - tv->creationTime;
         ptv[f].CBT = tv->runningTime;
         ptv[f].waitingTime = tv->sleepingTime;
+        
+        // Update the atv variablles
         atv.averageTurnAroundTime += ptv[f].turnAroundTime;
         atv.averageCBT += ptv[f].CBT;
         atv.averageWaitingTime += ptv[f].waitingTime;
@@ -59,10 +70,13 @@ int main(void) {
         printf(1, "sleepingTime %d\n", tv->sleepingTime);
         printf(1, "runningTime %d\n \n", tv->runningTime);*/
         }
+        
+    // Print the required times of the childrens
     for(int i=0; i<10;i++){
     	printf(1,"Pid %d Turnaround time %d, CBT %d, and Waiting time %d .\n",ptv[i].pid, ptv[i].turnAroundTime, ptv[i].CBT, ptv[i].waitingTime);
     }
 
+    // Print the average time variables of all of the childrens 
     printf(1, "Average Turnaround time %d, Average CBT %d, and Average Waiting time %d .\n", (atv.averageTurnAroundTime / 10), (atv.averageCBT / 10), (atv.averageWaitingTime / 10));
     exit();
 }

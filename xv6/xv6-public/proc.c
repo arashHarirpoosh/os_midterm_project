@@ -16,7 +16,7 @@ struct {
 static struct proc *initproc;
 
 int nextpid = 1;
-int schedNum = 2;
+int schedNum = 0;
 int time = 0;
 extern void forkret(void);
 extern void trapret(void);
