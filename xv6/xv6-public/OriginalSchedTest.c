@@ -35,7 +35,7 @@ int main(void) {
    atv.averageWaitingTime = 0;
    
    // Change The Scheduling Algorithm To The QUANTUM 
-   changePolicy(1); 
+   changePolicy(0); 
    
    // Create childrens to print their pid 1000 times
    for(int f=0; f<10;f++){
@@ -43,6 +43,7 @@ int main(void) {
     if (pid == 0){
         for (int i = 0; i < 1000; ++i){
 		printf(1, "%d : %d \n", getpid(), i);
+		
 		}
 
         exit();
@@ -55,7 +56,7 @@ int main(void) {
 	ptv[f].pid = waitForChild(tv); 
         ptv[f].turnAroundTime = tv->terminationTime - tv->creationTime;
         ptv[f].CBT = tv->runningTime;
-        ptv[f].waitingTime = tv->sleepingTime;
+        ptv[f].waitingTime = tv->sleepingTime + tv->readyTime;
         
         // Update the atv variablles
         atv.averageTurnAroundTime += ptv[f].turnAroundTime;

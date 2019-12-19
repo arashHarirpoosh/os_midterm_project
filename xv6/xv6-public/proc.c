@@ -401,7 +401,6 @@ return minp;
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
 /* 3.1 
-
 void
 scheduler(void)
 {
@@ -412,13 +411,11 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
@@ -428,21 +425,17 @@ scheduler(void)
       p->time_slot = 0;
       c->proc = p;
       switchuvm(p);
-
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
       }
     }
     release(&ptable.lock);
-
   }
 }
-
 */
 
 /* 3.2 
@@ -456,7 +449,6 @@ scheduler(void)
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
       p = highestPriority();
@@ -467,17 +459,14 @@ scheduler(void)
       p->calculatedPriority += p->priority;
       c->proc = p;
       switchuvm(p);
-
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
       }
     release(&ptable.lock);
-
   }
 }
 */
@@ -568,16 +557,18 @@ scheduler(void)
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-
+      //cprintf("%d : %d\n", p->pid, ticks);
 
     }
     }
     else if (schedNum == 1){
-
+    
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){      
 
       if(p->state != RUNNABLE)
         continue;
+        
+
       /*else if(p->state == EMBRYO){
         p->creationTime+=1;
         }
@@ -612,8 +603,8 @@ scheduler(void)
       //c->time_slot += 1; // Increment Time slot
       //cprintf("%d \n", p->pid);
 
-      if(ticks % QUANTUM == 0)
-      {
+      //if(ticks % QUANTUM == 0)
+      //{
       //c->time_slot = 0;
       c->proc = p;
       switchuvm(p);
@@ -623,13 +614,14 @@ scheduler(void)
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
       switchkvm();
-
+      //ticks++;
+    
+    //}
+    
+    
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
-    
-    }
-
     }
     
     }
@@ -692,12 +684,20 @@ sched(void)
 // Give up the CPU for one scheduling round.
 void
 yield(void)
-{
-
-  acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->state = RUNNABLE;
-  sched();
-  release(&ptable.lock);
+{ 
+  //cprintf("%d : %d\n", myproc()->pid, ticks);
+  if(schedNum == 1 && myproc()->runningTime % QUANTUM == 0){
+	  acquire(&ptable.lock);  //DOC: yieldlock
+	  myproc()->state = RUNNABLE;
+	  sched();
+	  release(&ptable.lock);
+  }
+  else if(schedNum == 0 || schedNum == 2){
+    	  acquire(&ptable.lock);  //DOC: yieldlock
+	  myproc()->state = RUNNABLE;
+	  sched();
+	  release(&ptable.lock);
+  }
 }
 
 // A fork child's very first scheduling by scheduler()
@@ -951,4 +951,3 @@ sys_waitForChild(void){
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
 }
-

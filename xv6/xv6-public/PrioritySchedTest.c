@@ -46,7 +46,7 @@ int main(void) {
 
     if (pid == 0){    
     	changePriority(1 + getpid() % 5);
-        for (int i = 0; i < 1000; ++i){
+        for (int i = 0; i < 500; ++i){
 		printf(1, "%d : %d \n", getpid(), i);
 		}
 
@@ -65,7 +65,7 @@ int main(void) {
 	ptv[i][numOfProc[i]].pid = pid; 
         ptv[i][numOfProc[i]].turnAroundTime = tv->terminationTime - tv->creationTime;
         ptv[i][numOfProc[i]].CBT = tv->runningTime;
-        ptv[i][numOfProc[i]].waitingTime = tv->sleepingTime;
+        ptv[i][numOfProc[i]].waitingTime = tv->sleepingTime + tv->readyTime;
         
         // Update the atv variablles
         atv[i].averageTurnAroundTime += ptv[i][numOfProc[i]].turnAroundTime;
