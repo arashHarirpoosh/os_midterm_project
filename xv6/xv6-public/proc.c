@@ -203,7 +203,7 @@ growproc(int n)
       return -1;
   }
   curproc->sz = sz;
-  switchuvm(curproc);
+  switchuvm(curproc);//swtching back to user mode
   return 0;
 }
 
@@ -425,10 +425,10 @@ scheduler(void)
       {
       p->time_slot = 0;
       c->proc = p;
-      switchuvm(p);
+      switchuvm(p);//swtching back to user mode
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
-      switchkvm();
+      switchkvm();//swtching to kernel mode
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
@@ -459,10 +459,10 @@ scheduler(void)
       // before jumping back to us.
       p->calculatedPriority += p->priority;
       c->proc = p;
-      switchuvm(p);
+      switchuvm(p);//swtching back to user mode
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
-      switchkvm();
+      switchkvm();//swtching to kernel mode
       // Process is done running for now.
       // It should have changed its p->state before coming back.
       c->proc = 0;
@@ -547,13 +547,13 @@ scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
-      switchuvm(p);
+      switchuvm(p);//swtching back to user mode
 	
       //p->runningTime += 1;
       p->getTheFirstCpu = 1;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
-      switchkvm();
+      switchkvm();//swtching to kernel mode
 
      // time+=1;
       // Process is done running for now.
@@ -609,13 +609,13 @@ scheduler(void)
       //{
       //c->time_slot = 0;
       c->proc = p;
-      switchuvm(p);
+      switchuvm(p);//swtching back to user mode
 	
      // p->runningTime += QUANTUM;
       p->getTheFirstCpu = 1;
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
-      switchkvm();
+      switchkvm();//swtching to kernel mode
       //ticks++;
     
     //}
@@ -636,12 +636,12 @@ scheduler(void)
       p->calculatedPriority += p->priority;
       p->getTheFirstCpu = 1;
       c->proc = p;
-      switchuvm(p);
+      switchuvm(p);//swtching back to user mode
 	
       //p->runningTime += 1;	
       p->state = RUNNING;
       swtch(&(c->scheduler), p->context);
-      switchkvm();
+      switchkvm();//swtching to kernel mode
       
       // Process is done running for now.
       // It should have changed its p->state before coming back.
